@@ -16,7 +16,9 @@ public class MapGenerator : MonoBehaviour
     List<Vector2Int> pathWay;
 
     [Header("MAP PROPERTIES")]
+    [MinValue(3)]
     public int width = 20;
+    [MinValue(3)]
     public int height = 20;
 
     [Header("NPC POSITION")]
@@ -29,8 +31,10 @@ public class MapGenerator : MonoBehaviour
     [SerializeField, ShowIf("setTargetPosition"), MinValue(0), MaxValue("@height - 1")]
     public Vector2Int currentTargetPosition = Vector2Int.zero;
 
-    [PropertySpace(20, 20)]
+    [PropertySpace(20)]
     public ETypeCreatePath typeGuaranteedPath;
+    [ShowIf("typeGuaranteedPath", ETypeCreatePath.RandomPath), PropertySpace(10, 20)]
+    public float targetRate = 0.7f;
 
     [Range(0.1f, 0.9f)]
     public float wallPercentage = 0.3f; //wall appearance rate
@@ -84,25 +88,20 @@ public class MapGenerator : MonoBehaviour
     {
         if (gridFloor == null || gridFloor.Length == 0) return;
 
-        // First, randomize tiles to create walls
-        if (typeGuaranteedPath != ETypeCreatePath.Disable)
+        // Set NPC position
+        if (!setNPCPosition ||
+            currentNPCPosition.x < 0 || currentNPCPosition.x >= height ||
+            currentNPCPosition.y < 0 || currentNPCPosition.y >= width)
         {
-            RandomizeTiles();
+            currentNPCPosition = new Vector2Int(Random.Range(0, height), Random.Range(0, width));
         }
 
-        // Set NPC position in a non-wall position
-        if (!setNPCPosition)
-        {
-            do
-            {
-                currentNPCPosition = new Vector2Int(Random.Range(0, height), Random.Range(0, width));
-            }
-            while (gridValue[currentNPCPosition.x, currentNPCPosition.y] == (int)ETypeFloor.Wall);
-        }
         gridValue[currentNPCPosition.x, currentNPCPosition.y] = (int)ETypeFloor.NPC;
 
-        // Set target position in a non-wall position
-        if (!setTargetPosition || isAdjacentPosition())
+        // Set target position
+        if (!setTargetPosition || isAdjacentPosition() ||
+            currentTargetPosition.x < 0 || currentTargetPosition.x >= height ||
+            currentTargetPosition.y < 0 || currentTargetPosition.y >= width)
         {
             do
             {
@@ -124,6 +123,9 @@ public class MapGenerator : MonoBehaviour
             case ETypeCreatePath.Disable:
                 break;
         }
+
+        RandomizeTiles();
+
         ClearPath();
     }
 
@@ -187,7 +189,7 @@ public class MapGenerator : MonoBehaviour
         {
             Vector2Int nextDirection;
 
-            if (Random.value < 0.7f)
+            if (Random.value < targetRate)
             {
                 int xDir = (currentTargetPosition.x > current.x) ? 0 : ((currentTargetPosition.x < current.x) ? 2 : -1);
                 int yDir = (currentTargetPosition.y > current.y) ? 1 : ((currentTargetPosition.y < current.y) ? 3 : -1);
