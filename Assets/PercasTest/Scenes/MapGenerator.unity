@@ -14693,11 +14693,12 @@ MonoBehaviour:
   pathfinder: {fileID: 462645111}
   width: 20
   height: 20
-  setNPCPosition: 0
+  setNPCPosition: 1
   currentNPCPosition: {x: 0, y: 0}
-  setTargetPosition: 0
+  setTargetPosition: 1
   currentTargetPosition: {x: 19, y: 19}
   typeGuaranteedPath: 1
+  targetRate: 0.7
   wallPercentage: 0.3
 --- !u!114 &462645111
 MonoBehaviour:
